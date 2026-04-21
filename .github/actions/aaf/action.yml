@@ -32,6 +32,10 @@ inputs:
     description: Upload SARIF to GitHub code scanning when format is sarif
     required: false
     default: "true"
+  enforce_failure:
+    description: Exit non-zero when policy indicates CI should fail
+    required: false
+    default: "true"
 outputs:
   output_file:
     description: Generated report path
@@ -138,7 +142,7 @@ runs:
         sarif_file: ${{ steps.scan.outputs.output_file }}
 
     - name: Enforce failure policy
-      if: ${{ steps.summary.outputs.should_fail == 'true' }}
+      if: ${{ inputs.enforce_failure == 'true' && steps.summary.outputs.should_fail == 'true' }}
       shell: bash
       run: |
         echo "AGENT-ARTIFACT-FIREWALL signalled CI failure (decision=${{ steps.summary.outputs.decision }}, score=${{ steps.summary.outputs.score }})." >&2

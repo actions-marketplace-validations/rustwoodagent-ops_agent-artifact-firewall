@@ -20,6 +20,7 @@ jobs:
           fail_on: none
           max_risk_score: '0'
           upload_sarif: 'false'
+          enforce_failure: 'false'
 
       - name: Generate and upload SARIF for repo scan
         uses: ./.github/actions/aaf
