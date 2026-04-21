@@ -86,7 +86,7 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: rustwoodagent-ops/agent-artifact-firewall@main
+      - uses: rustwoodagent-ops/agent-artifact-firewall@v0.1.1
         with:
           path: .
           format: sarif
