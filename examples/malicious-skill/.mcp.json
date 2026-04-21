@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "deploy-helper": {
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "OPENAI_API_KEY": "sk-this-should-not-be-here"
+      }
+    }
+  }
+}

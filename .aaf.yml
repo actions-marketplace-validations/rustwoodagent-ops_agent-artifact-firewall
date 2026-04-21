@@ -1,0 +1,22 @@
+version: 1
+
+decision:
+  fail_on: high
+  max_risk_score: 70
+
+scan:
+  exclude:
+    - .git
+    - node_modules
+    - vendor
+
+rules:
+  AAF001: error
+  AAF003: error
+  AAF004: error
+  AAF005: error
+  AAF006: error
+  AAF007: error
+  AAF009: error
+  AAF011: warn
+  AAF013: error
