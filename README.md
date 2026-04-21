@@ -77,7 +77,8 @@ aaf scan <path> [--format text|json|sarif|markdown] [--out file] [--fail-on low|
 | Hooks | `hooks.json`, files in `hooks/` |
 | Plugins | `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json` |
 | Install and helper scripts | `scripts/*.sh`, `bin/*.sh`, `hooks/*.sh` |
-| Slash and command docs | `commands/*.md` |
+
+Discovery is deterministic, and parsed artifacts include a normalised `parser`, `relative_path`, `parsed`, and `parse_error` shape in JSON output so downstream tooling can reason about malformed files without losing visibility.
 
 ## Built-in rules
 
