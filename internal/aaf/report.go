@@ -39,7 +39,9 @@ func renderText(result ScanResult) string {
     fmt.Fprintf(&b, "%s, %s %s\n", result.Tool, icon, strings.ToUpper(result.Decision))
     fmt.Fprintf(&b, "Risk score: %d/100\n", result.RiskScore)
     fmt.Fprintf(&b, "Decision: %s\n", strings.ToUpper(result.Decision))
-    fmt.Fprintf(&b, "CI fail: %t\n", result.ShouldFail)
+    if result.ShouldFail {
+        fmt.Fprintf(&b, "CI fail: %t\n", result.ShouldFail)
+    }
     fmt.Fprintf(&b, "Artifacts found: %d\n", len(result.Artifacts))
     fmt.Fprintf(&b, "Findings: %d\n", len(result.Findings))
 
@@ -73,6 +75,7 @@ func renderMarkdown(result ScanResult) string {
         b.WriteString("No findings.\n")
         return b.String()
     }
+    b.WriteString("## Findings\n\n")
     b.WriteString("| Severity | Rule | File | Evidence |\n|---|---|---|---|\n")
     for _, f := range result.Findings {
         fmt.Fprintf(&b, "| %s | %s | `%s:%d` | `%s` |\n", f.Severity, f.RuleID, cleanPath(firstNonEmpty(f.RelativePath, f.Path)), f.Line, escapeMarkdown(f.Evidence))
@@ -104,6 +107,7 @@ func renderSARIF(result ScanResult) (string, error) {
         Help             map[string]any `json:"help"`
     }
 
+    result = normalizeScanResult(result)
     seen := map[string]sarifRule{}
     var results []sarifResult
     for _, f := range result.Findings {

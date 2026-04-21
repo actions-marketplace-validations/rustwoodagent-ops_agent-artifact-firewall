@@ -27,6 +27,8 @@ Expected result:
 ```text
 AGENT-ARTIFACT-FIREWALL, ❌ BLOCK
 Risk score: 100/100
+Decision: BLOCK
+CI fail: true
 ```
 
 Try the machine-readable outputs too:
@@ -53,6 +55,7 @@ go build -o aaf ./cmd/aaf
 aaf scan .
 aaf scan . --fail-on high
 aaf scan . --format json
+aaf scan . --format markdown
 ```
 
 ### CI and code scanning usage
