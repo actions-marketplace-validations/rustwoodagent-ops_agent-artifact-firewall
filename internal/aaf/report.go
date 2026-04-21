@@ -125,7 +125,7 @@ func renderSARIF(result ScanResult) (string, error) {
     }
 
     seen := map[string]sarifRule{}
-    var results []sarifResult
+    results := make([]sarifResult, 0)
     for _, f := range result.Findings {
         if _, ok := seen[f.RuleID]; !ok {
             seen[f.RuleID] = sarifRule{
