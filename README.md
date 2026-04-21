@@ -25,10 +25,12 @@ go run ./cmd/aaf scan examples/malicious-skill
 Expected result:
 
 ```text
-AGENT-ARTIFACT-FIREWALL, ❌ BLOCK
-Risk score: 100/100
+AGENT-ARTIFACT-FIREWALL
+
+Target: examples/malicious-skill
 Decision: BLOCK
-CI fail: true
+Risk score: 100
+CI fail: yes
 ```
 
 Try the machine-readable outputs too:

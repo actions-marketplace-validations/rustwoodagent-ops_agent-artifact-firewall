@@ -120,6 +120,7 @@ func TestRenderPolicyVisibilityStable(t *testing.T) {
     result := ScanResult{
         Tool:       toolName,
         Version:    toolVersion,
+        Target:     ".",
         Decision:   "REVIEW",
         RiskScore:  35,
         ShouldFail: true,
@@ -129,7 +130,7 @@ func TestRenderPolicyVisibilityStable(t *testing.T) {
     if err != nil {
         t.Fatal(err)
     }
-    if !containsAll(out, []string{"Risk score: 35/100", "Decision: REVIEW", "CI fail: true"}) {
+    if !containsAll(out, []string{"Target: .", "Decision: REVIEW", "Risk score: 35", "CI fail: yes"}) {
         t.Fatalf("missing policy visibility fields in output: %s", out)
     }
 }
