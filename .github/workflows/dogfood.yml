@@ -1,20 +1,21 @@
-name: Dogfood AGENT-ARTIFACT-FIREWALL
+name: Dogfood
 on:
   pull_request:
   push:
     branches: [main]
 jobs:
-  scan-agent-artifacts:
+  dogfood:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Run AGENT-ARTIFACT-FIREWALL
+        uses: ./.github/actions/aaf
         with:
-          go-version: '1.23'
-      - name: Scan repo agent artifacts
-        run: go run ./cmd/aaf scan . --format sarif --out aaf.sarif --fail-on high
-      - name: Upload SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: aaf.sarif
+          path: .
+          format: sarif
+          out: artifacts/aaf.sarif
+          fail-on: high
+          max-risk-score: '70'

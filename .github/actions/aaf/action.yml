@@ -1,0 +1,65 @@
+name: AGENT-ARTIFACT-FIREWALL
+description: A firewall for AI agent artifacts
+branding:
+  icon: shield
+  color: orange
+inputs:
+  path:
+    description: Path to scan
+    required: false
+    default: .
+  format:
+    description: Output format
+    required: false
+    default: sarif
+  out:
+    description: Output file path
+    required: false
+    default: aaf.sarif
+  fail-on:
+    description: Severity threshold for failing the scan
+    required: false
+    default: high
+  max-risk-score:
+    description: Maximum allowed aggregate risk score before failure
+    required: false
+    default: "70"
+outputs:
+  output-file:
+    description: Generated report path
+    value: ${{ steps.scan.outputs.output-file }}
+runs:
+  using: composite
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: ${{ github.action_path }}/go.mod
+
+    - name: Build aaf
+      shell: bash
+      run: go build -o "$RUNNER_TEMP/aaf" ./cmd/aaf
+      working-directory: ${{ github.action_path }}
+
+    - id: scan
+      name: Run AGENT-ARTIFACT-FIREWALL
+      shell: bash
+      run: |
+        set -euo pipefail
+        OUT_PATH="${{ inputs.out }}"
+        if [[ "$OUT_PATH" != /* ]]; then
+          OUT_PATH="$GITHUB_WORKSPACE/$OUT_PATH"
+        fi
+        mkdir -p "$(dirname "$OUT_PATH")"
+        "$RUNNER_TEMP/aaf" scan "${{ inputs.path }}" \
+          --format "${{ inputs.format }}" \
+          --out "$OUT_PATH" \
+          --fail-on "${{ inputs.fail-on }}" \
+          --max-risk-score "${{ inputs.max-risk-score }}"
+        echo "output-file=$OUT_PATH" >> "$GITHUB_OUTPUT"
+
+    - name: Upload SARIF
+      if: ${{ inputs.format == 'sarif' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.scan.outputs.output-file }}
