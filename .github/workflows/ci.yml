@@ -20,7 +20,9 @@ jobs:
       - name: Malicious fixture terminal demo
         run: go run ./cmd/aaf scan examples/malicious-skill --no-fail
       - name: Malicious fixture SARIF output
-        run: go run ./cmd/aaf scan examples/malicious-skill --format sarif --out artifacts/aaf.sarif --no-fail
+        run: |
+          mkdir -p artifacts
+          go run ./cmd/aaf scan examples/malicious-skill --format sarif --out artifacts/aaf.sarif --no-fail
       - name: Upload malicious fixture SARIF
         uses: github/codeql-action/upload-sarif@v3
         with:
