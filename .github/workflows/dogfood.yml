@@ -22,10 +22,16 @@ jobs:
           upload_sarif: 'false'
           enforce_failure: 'false'
 
+      - name: Prepare clean dogfood scan path
+        run: |
+          rm -rf .dogfood-scan
+          mkdir -p .dogfood-scan
+          rsync -a ./ ./.dogfood-scan/ --exclude .git --exclude .dogfood-scan --exclude examples/malicious-skill
+
       - name: Generate and upload SARIF for repo scan
         uses: ./.github/actions/aaf
         with:
-          path: .
+          path: .dogfood-scan
           format: sarif
           out: artifacts/aaf.sarif
           fail_on: high
