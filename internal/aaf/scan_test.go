@@ -57,8 +57,8 @@ func TestRenderJSONStableOrdering(t *testing.T) {
             {Path: "a-first.md", Type: "skill"},
         },
         Findings: []Finding{
-            {RuleID: "AAF009", Severity: "high", Title: "Remote script piped to shell", Path: "z-last.sh", Line: 4, Evidence: "curl x | bash"},
-            {RuleID: "AAF001", Severity: "high", Title: "Hidden prompt injection or instruction override", Path: "a-first.md", Line: 2, Evidence: "ignore prior instructions"},
+            {RuleID: "AAF009", Severity: "high", Title: "curl | bash pattern", Path: "z-last.sh", RelativePath: "z-last.sh", Line: 4, Evidence: "curl x | bash"},
+            {RuleID: "AAF001", Severity: "high", Title: "Hidden prompt injection phrase", Path: "a-first.md", RelativePath: "a-first.md", Line: 2, Evidence: "ignore prior instructions"},
         },
     }
 
@@ -87,8 +87,8 @@ func TestRenderSARIFHasStableRuleOrder(t *testing.T) {
         Decision:  "block",
         RiskScore: 100,
         Findings: []Finding{
-            {RuleID: "AAF009", Severity: "high", Title: "Remote script piped to shell", Path: "b.sh", Line: 3, Evidence: "curl x | bash", Explanation: "bad", Recommendation: "stop"},
-            {RuleID: "AAF001", Severity: "high", Title: "Hidden prompt injection or instruction override", Path: "a.md", Line: 1, Evidence: "ignore prior instructions", Explanation: "bad", Recommendation: "stop"},
+            {RuleID: "AAF009", Severity: "high", Title: "curl | bash pattern", Path: "b.sh", RelativePath: "b.sh", Line: 3, Evidence: "curl x | bash", Explanation: "bad", Recommendation: "stop"},
+            {RuleID: "AAF001", Severity: "high", Title: "Hidden prompt injection phrase", Path: "a.md", RelativePath: "a.md", Line: 1, Evidence: "ignore prior instructions", Explanation: "bad", Recommendation: "stop"},
         },
     }
 

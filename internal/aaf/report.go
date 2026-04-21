@@ -52,7 +52,7 @@ func renderText(result ScanResult) string {
         b.WriteString("\nFindings:\n")
         for _, f := range result.Findings {
             fmt.Fprintf(&b, "\n%s %s %s\n", strings.ToUpper(f.Severity), f.RuleID, f.Title)
-            fmt.Fprintf(&b, "  File: %s:%d\n", cleanPath(f.Path), f.Line)
+            fmt.Fprintf(&b, "  File: %s:%d\n", cleanPath(firstNonEmpty(f.RelativePath, f.Path)), f.Line)
             if f.Evidence != "" {
                 fmt.Fprintf(&b, "  Evidence: %s\n", f.Evidence)
             }
@@ -73,7 +73,7 @@ func renderMarkdown(result ScanResult) string {
     }
     b.WriteString("| Severity | Rule | File | Evidence |\n|---|---|---|---|\n")
     for _, f := range result.Findings {
-        fmt.Fprintf(&b, "| %s | %s | `%s:%d` | `%s` |\n", f.Severity, f.RuleID, cleanPath(f.Path), f.Line, escapeMarkdown(f.Evidence))
+        fmt.Fprintf(&b, "| %s | %s | `%s:%d` | `%s` |\n", f.Severity, f.RuleID, cleanPath(firstNonEmpty(f.RelativePath, f.Path)), f.Line, escapeMarkdown(f.Evidence))
     }
     return b.String()
 }
@@ -114,7 +114,7 @@ func renderSARIF(result ScanResult) (string, error) {
             }
         }
         l := loc{}
-        l.PhysicalLocation.ArtifactLocation.URI = cleanPath(f.Path)
+        l.PhysicalLocation.ArtifactLocation.URI = cleanPath(firstNonEmpty(f.RelativePath, f.Path))
         if f.Line > 0 {
             l.PhysicalLocation.Region.StartLine = f.Line
         } else {
@@ -170,8 +170,10 @@ func normalizeScanResult(result ScanResult) ScanResult {
     sort.SliceStable(normalized.Findings, func(i, j int) bool {
         left := normalized.Findings[i]
         right := normalized.Findings[j]
-        if cleanPath(left.Path) != cleanPath(right.Path) {
-            return cleanPath(left.Path) < cleanPath(right.Path)
+        leftPath := cleanPath(firstNonEmpty(left.RelativePath, left.Path))
+        rightPath := cleanPath(firstNonEmpty(right.RelativePath, right.Path))
+        if leftPath != rightPath {
+            return leftPath < rightPath
         }
         if left.Line != right.Line {
             return left.Line < right.Line

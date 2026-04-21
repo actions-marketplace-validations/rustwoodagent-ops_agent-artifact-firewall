@@ -22,12 +22,13 @@ type Finding struct {
     RuleID         string `json:"rule_id"`
     Severity       string `json:"severity"`
     Title          string `json:"title"`
-    Path           string `json:"path"`
+    Path           string `json:"path,omitempty"`
+    RelativePath   string `json:"relative_path"`
     Line           int    `json:"line,omitempty"`
     Evidence       string `json:"evidence,omitempty"`
     Explanation    string `json:"explanation"`
     Recommendation string `json:"recommendation"`
-    Confidence     string `json:"confidence"`
+    Confidence     string `json:"confidence,omitempty"`
 }
 
 type ScanResult struct {
