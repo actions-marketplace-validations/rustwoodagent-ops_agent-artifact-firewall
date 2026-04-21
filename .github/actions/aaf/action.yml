@@ -9,25 +9,42 @@ inputs:
     required: false
     default: .
   format:
-    description: Output format
+    description: Output format (text, json, markdown, sarif)
     required: false
     default: sarif
   out:
-    description: Output file path
+    description: Output file path for JSON, Markdown, or SARIF output
     required: false
-    default: aaf.sarif
-  fail-on:
+    default: artifacts/aaf.sarif
+  fail_on:
     description: Severity threshold for failing the scan
     required: false
     default: high
-  max-risk-score:
+  max_risk_score:
     description: Maximum allowed aggregate risk score before failure
     required: false
     default: "70"
+  config_path:
+    description: Optional path to a repo-local .aaf.yml file to use for the scan
+    required: false
+    default: ""
+  upload_sarif:
+    description: Upload SARIF to GitHub code scanning when format is sarif
+    required: false
+    default: "true"
 outputs:
-  output-file:
+  output_file:
     description: Generated report path
-    value: ${{ steps.scan.outputs.output-file }}
+    value: ${{ steps.scan.outputs.output_file }}
+  decision:
+    description: Final decision from the scan summary
+    value: ${{ steps.summary.outputs.decision }}
+  score:
+    description: Total risk score from the scan summary
+    value: ${{ steps.summary.outputs.score }}
+  should_fail:
+    description: Whether the scan indicates CI should fail
+    value: ${{ steps.summary.outputs.should_fail }}
 runs:
   using: composite
   steps:
@@ -46,20 +63,83 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
+        SCAN_PATH="${{ inputs.path }}"
         OUT_PATH="${{ inputs.out }}"
-        if [[ "$OUT_PATH" != /* ]]; then
-          OUT_PATH="$GITHUB_WORKSPACE/$OUT_PATH"
+        CONFIG_PATH="${{ inputs.config_path }}"
+
+        if [[ -n "$CONFIG_PATH" ]]; then
+          CONFIG_BASENAME="$(basename "$CONFIG_PATH")"
+          if [[ "$CONFIG_BASENAME" != ".aaf.yml" ]]; then
+            echo "config_path must point to a file named .aaf.yml" >&2
+            exit 2
+          fi
+          CONFIG_SOURCE="$GITHUB_WORKSPACE/$CONFIG_PATH"
+          CONFIG_TARGET="$GITHUB_WORKSPACE/$SCAN_PATH/.aaf.yml"
+          if [[ ! -f "$CONFIG_SOURCE" ]]; then
+            echo "config_path not found: $CONFIG_SOURCE" >&2
+            exit 2
+          fi
+          if [[ "$CONFIG_SOURCE" != "$CONFIG_TARGET" ]]; then
+            cp "$CONFIG_SOURCE" "$CONFIG_TARGET"
+          fi
         fi
-        mkdir -p "$(dirname "$OUT_PATH")"
+
+        if [[ "${{ inputs.format }}" == "text" ]]; then
+          "$RUNNER_TEMP/aaf" scan "$SCAN_PATH" \
+            --fail-on "${{ inputs.fail_on }}" \
+            --max-risk-score "${{ inputs.max_risk_score }}" \
+            --no-fail | tee "$RUNNER_TEMP/aaf-text-output.txt"
+          echo "output_file=$RUNNER_TEMP/aaf-text-output.txt" >> "$GITHUB_OUTPUT"
+        else
+          if [[ "$OUT_PATH" != /* ]]; then
+            OUT_PATH="$GITHUB_WORKSPACE/$OUT_PATH"
+          fi
+          mkdir -p "$(dirname "$OUT_PATH")"
+          "$RUNNER_TEMP/aaf" scan "$SCAN_PATH" \
+            --format "${{ inputs.format }}" \
+            --out "$OUT_PATH" \
+            --fail-on "${{ inputs.fail_on }}" \
+            --max-risk-score "${{ inputs.max_risk_score }}" \
+            --no-fail
+          echo "output_file=$OUT_PATH" >> "$GITHUB_OUTPUT"
+        fi
+
+    - id: summary
+      name: Generate summary outputs
+      shell: bash
+      run: |
+        set -euo pipefail
+        JSON_PATH="$RUNNER_TEMP/aaf-summary.json"
         "$RUNNER_TEMP/aaf" scan "${{ inputs.path }}" \
-          --format "${{ inputs.format }}" \
-          --out "$OUT_PATH" \
-          --fail-on "${{ inputs.fail-on }}" \
-          --max-risk-score "${{ inputs.max-risk-score }}"
-        echo "output-file=$OUT_PATH" >> "$GITHUB_OUTPUT"
+          --format json \
+          --out "$JSON_PATH" \
+          --fail-on "${{ inputs.fail_on }}" \
+          --max-risk-score "${{ inputs.max_risk_score }}" \
+          --no-fail
+        DECISION=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["decision"])' "$JSON_PATH")
+        SCORE=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["score"])' "$JSON_PATH")
+        SHOULD_FAIL=$(python3 -c 'import json, sys; print(str(json.load(open(sys.argv[1], encoding="utf-8"))["should_fail"]).lower())' "$JSON_PATH")
+        echo "decision=$DECISION" >> "$GITHUB_OUTPUT"
+        echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+        echo "should_fail=$SHOULD_FAIL" >> "$GITHUB_OUTPUT"
+        {
+          echo "### AGENT-ARTIFACT-FIREWALL"
+          echo ""
+          echo "- Decision: $DECISION"
+          echo "- Risk score: $SCORE"
+          echo "- CI fail: $SHOULD_FAIL"
+          echo "- Output: ${{ steps.scan.outputs.output_file }}"
+        } >> "$GITHUB_STEP_SUMMARY"
 
     - name: Upload SARIF
-      if: ${{ inputs.format == 'sarif' }}
+      if: ${{ inputs.format == 'sarif' && inputs.upload_sarif == 'true' }}
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: ${{ steps.scan.outputs.output-file }}
+        sarif_file: ${{ steps.scan.outputs.output_file }}
+
+    - name: Enforce failure policy
+      if: ${{ steps.summary.outputs.should_fail == 'true' }}
+      shell: bash
+      run: |
+        echo "AGENT-ARTIFACT-FIREWALL signalled CI failure (decision=${{ steps.summary.outputs.decision }}, score=${{ steps.summary.outputs.score }})." >&2
+        exit 1

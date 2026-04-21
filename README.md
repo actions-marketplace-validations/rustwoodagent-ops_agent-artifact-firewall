@@ -37,8 +37,11 @@ Try the machine-readable outputs too:
 
 ```bash
 go run ./cmd/aaf scan examples/malicious-skill --format json
+go run ./cmd/aaf scan examples/malicious-skill --format markdown
 go run ./cmd/aaf scan examples/malicious-skill --format sarif --out findings.sarif
 ```
+
+The malicious fixture is the fastest end-to-end demo path. It shows the local terminal output, JSON and Markdown summaries, and SARIF/code-scanning flow using a known-bad artifact set.
 
 ## Quickstart
 
@@ -65,6 +68,34 @@ aaf scan . --format markdown
 ```bash
 aaf scan . --format sarif --out aaf.sarif
 ```
+
+### GitHub Actions
+
+```yaml
+name: Scan agent artifacts
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  aaf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustwoodagent-ops/agent-artifact-firewall@main
+        with:
+          path: .
+          format: sarif
+          out: artifacts/aaf.sarif
+          fail_on: high
+          max_risk_score: '70'
+```
+
+This action can also run the terminal demo style output by setting `format: text`. When `format: sarif`, it uploads results to GitHub code scanning and exposes summary outputs for `decision`, `score`, `should_fail`, and `output_file`.
 
 ## CLI usage
 

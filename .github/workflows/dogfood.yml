@@ -11,11 +11,22 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-      - name: Run AGENT-ARTIFACT-FIREWALL
+
+      - name: Run terminal demo against malicious fixture
+        uses: ./.github/actions/aaf
+        with:
+          path: examples/malicious-skill
+          format: text
+          fail_on: high
+          max_risk_score: '70'
+          upload_sarif: 'false'
+
+      - name: Generate and upload SARIF for repo scan
         uses: ./.github/actions/aaf
         with:
           path: .
           format: sarif
           out: artifacts/aaf.sarif
-          fail-on: high
-          max-risk-score: '70'
+          fail_on: high
+          max_risk_score: '70'
+          upload_sarif: 'true'

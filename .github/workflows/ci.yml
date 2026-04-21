@@ -15,9 +15,13 @@ jobs:
         with:
           go-version: '1.22.2'
       - run: go test ./...
-      - run: go run ./cmd/aaf scan examples/safe-skill
-      - run: go run ./cmd/aaf scan examples/malicious-skill --no-fail
-      - run: go run ./cmd/aaf scan examples/malicious-skill --format sarif --out artifacts/aaf.sarif --no-fail
-      - uses: github/codeql-action/upload-sarif@v3
+      - name: Safe fixture should allow
+        run: go run ./cmd/aaf scan examples/safe-skill
+      - name: Malicious fixture terminal demo
+        run: go run ./cmd/aaf scan examples/malicious-skill --no-fail
+      - name: Malicious fixture SARIF output
+        run: go run ./cmd/aaf scan examples/malicious-skill --format sarif --out artifacts/aaf.sarif --no-fail
+      - name: Upload malicious fixture SARIF
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: artifacts/aaf.sarif
