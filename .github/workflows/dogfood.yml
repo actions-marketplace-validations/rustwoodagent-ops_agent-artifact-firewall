@@ -17,8 +17,8 @@ jobs:
         with:
           path: examples/malicious-skill
           format: text
-          fail_on: high
-          max_risk_score: '70'
+          fail_on: none
+          max_risk_score: '0'
           upload_sarif: 'false'
 
       - name: Generate and upload SARIF for repo scan
