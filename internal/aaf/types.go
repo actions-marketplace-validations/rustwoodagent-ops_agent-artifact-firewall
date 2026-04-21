@@ -31,12 +31,19 @@ type Finding struct {
     Confidence     string `json:"confidence,omitempty"`
 }
 
+type PolicyConfig struct {
+    FailOn       string `json:"fail_on"`
+    MaxRiskScore int    `json:"max_risk_score"`
+}
+
 type ScanResult struct {
-    Tool      string     `json:"tool"`
-    Version   string     `json:"version"`
-    Target    string     `json:"target"`
-    Decision  string     `json:"decision"`
-    RiskScore int        `json:"risk_score"`
-    Artifacts []Artifact `json:"artifacts"`
-    Findings  []Finding  `json:"findings"`
+    Tool       string       `json:"tool"`
+    Version    string       `json:"version"`
+    Target     string       `json:"target"`
+    Decision   string       `json:"decision"`
+    RiskScore  int          `json:"risk_score"`
+    ShouldFail bool         `json:"should_fail"`
+    Policy     PolicyConfig `json:"policy"`
+    Artifacts  []Artifact   `json:"artifacts"`
+    Findings   []Finding    `json:"findings"`
 }

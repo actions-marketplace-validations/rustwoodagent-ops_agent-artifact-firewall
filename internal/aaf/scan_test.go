@@ -11,8 +11,8 @@ func TestMaliciousFixtureBlocks(t *testing.T) {
     if err != nil {
         t.Fatal(err)
     }
-    if result.Decision != "block" {
-        t.Fatalf("expected block, got %s", result.Decision)
+    if result.Decision != "BLOCK" {
+        t.Fatalf("expected BLOCK, got %s", result.Decision)
     }
     if result.RiskScore < 70 {
         t.Fatalf("expected score >= 70, got %d", result.RiskScore)
@@ -27,8 +27,8 @@ func TestSafeFixtureAllows(t *testing.T) {
     if err != nil {
         t.Fatal(err)
     }
-    if result.Decision != "allow" {
-        t.Fatalf("expected allow, got %s", result.Decision)
+    if result.Decision != "ALLOW" {
+        t.Fatalf("expected ALLOW, got %s", result.Decision)
     }
 }
 
@@ -50,7 +50,7 @@ func TestRenderJSONStableOrdering(t *testing.T) {
     result := ScanResult{
         Tool:      toolName,
         Version:   toolVersion,
-        Decision:  "block",
+        Decision:  "BLOCK",
         RiskScore: 100,
         Artifacts: []Artifact{
             {Path: "z-last.sh", Type: "script"},
@@ -84,7 +84,7 @@ func TestRenderSARIFHasStableRuleOrder(t *testing.T) {
     result := ScanResult{
         Tool:      toolName,
         Version:   toolVersion,
-        Decision:  "block",
+        Decision:  "BLOCK",
         RiskScore: 100,
         Findings: []Finding{
             {RuleID: "AAF009", Severity: "high", Title: "curl | bash pattern", Path: "b.sh", RelativePath: "b.sh", Line: 3, Evidence: "curl x | bash", Explanation: "bad", Recommendation: "stop"},

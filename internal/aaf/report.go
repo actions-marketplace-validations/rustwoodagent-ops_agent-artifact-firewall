@@ -28,16 +28,18 @@ func Render(result ScanResult, format string) (string, error) {
 func renderText(result ScanResult) string {
     result = normalizeScanResult(result)
     icon := "✅"
-    if result.Decision == "review" {
+    if strings.EqualFold(result.Decision, "review") {
         icon = "⚠️"
     }
-    if result.Decision == "block" {
+    if strings.EqualFold(result.Decision, "block") {
         icon = "❌"
     }
 
     var b strings.Builder
     fmt.Fprintf(&b, "%s, %s %s\n", result.Tool, icon, strings.ToUpper(result.Decision))
     fmt.Fprintf(&b, "Risk score: %d/100\n", result.RiskScore)
+    fmt.Fprintf(&b, "Decision: %s\n", strings.ToUpper(result.Decision))
+    fmt.Fprintf(&b, "CI fail: %t\n", result.ShouldFail)
     fmt.Fprintf(&b, "Artifacts found: %d\n", len(result.Artifacts))
     fmt.Fprintf(&b, "Findings: %d\n", len(result.Findings))
 
@@ -66,7 +68,7 @@ func renderText(result ScanResult) string {
 
 func renderMarkdown(result ScanResult) string {
     var b strings.Builder
-    fmt.Fprintf(&b, "# AGENT-ARTIFACT-FIREWALL Report\n\n**Decision:** `%s`  \n**Risk score:** `%d/100`  \n**Artifacts:** `%d`  \n**Findings:** `%d`\n\n", result.Decision, result.RiskScore, len(result.Artifacts), len(result.Findings))
+    fmt.Fprintf(&b, "# AGENT-ARTIFACT-FIREWALL Report\n\n**Decision:** `%s`  \n**Risk score:** `%d/100`  \n**CI fail:** `%t`  \n**Artifacts:** `%d`  \n**Findings:** `%d`\n\n", strings.ToUpper(result.Decision), result.RiskScore, result.ShouldFail, len(result.Artifacts), len(result.Findings))
     if len(result.Findings) == 0 {
         b.WriteString("No findings.\n")
         return b.String()
