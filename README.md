@@ -103,6 +103,27 @@ This action can also run the terminal demo style output by setting `format: text
 aaf scan <path> [--format text|json|sarif|markdown] [--out file] [--fail-on low|medium|high|critical|none] [--max-risk-score N] [--no-fail]
 ```
 
+## Suppressions
+
+Use a repo-local `.aaf.yml` to suppress known false positives after findings are emitted and before score or failure evaluation:
+
+```yaml
+version: 1
+
+decision:
+  fail_on: high
+  max_risk_score: 70
+
+suppressions:
+  - rule_id: AAF011
+    path: examples/malicious-skill/hooks/hooks.json
+    reason: intentional demo fixture
+  - path: examples/fixtures/**
+    reason: regression fixture directory
+```
+
+`path` is required and supports either an exact relative path or a trailing `/**` prefix match. `rule_id` is optional. Suppressed findings stay visible in text, Markdown, and JSON output, but they do not contribute to score, decision, `should_fail`, or SARIF results.
+
 ## Supported artifact types
 
 | Artifact type | Examples |
